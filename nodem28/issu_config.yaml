@@ -1,0 +1,159 @@
+# ISSU Upgrade Configuration - nodem28/30 (21.4.L4.76) → nodem29 (master.1310)
+# Cluster: nodem28+nodem30 old controllers, nodem29 new controller, nodem31/32/33 computes
+
+cluster_name: "m28m33_cluster"
+upgrade_type: "issu"
+
+# SSH credentials (password-based, all nodes same)
+ssh:
+  username: "root"
+  password: "c0ntrail123"
+
+# Old Controllers (21.4.L4.76) - source
+old_controllers:
+  - hostname: "nodem28"
+    mgmt_ip: "10.204.216.2"
+    control_data_ip: "10.10.12.28"
+    api_server_ip: "10.204.216.2"
+    contrail_version: "21.4.L4.76"
+  - hostname: "nodem30"
+    mgmt_ip: "10.204.216.4"
+    control_data_ip: "10.10.12.30"
+    api_server_ip: "10.204.216.4"
+    contrail_version: "21.4.L4.76"
+
+# New Controller (master.1310) - target
+new_controllers:
+  - hostname: "nodem29"
+    mgmt_ip: "10.204.216.3"
+    control_data_ip: "10.10.12.29"
+    api_server_ip: "10.204.216.3"
+    contrail_version: "master.1310"
+
+# Compute Nodes
+compute_nodes:
+  - hostname: "nodem31"
+    mgmt_ip: "10.204.216.176"
+    control_data_ip: "10.10.12.31"
+    vrouter:
+      PHYSICAL_INTERFACE: "bond0"
+      CPU_CORE_MASK: "0xff"
+      DPDK_UIO_DRIVER: "vfio-pci"
+      HUGE_PAGES: 32000
+      AGENT_MODE: "dpdk"
+  - hostname: "nodem32"
+    mgmt_ip: "10.204.216.158"
+    control_data_ip: "10.10.12.32"
+    vrouter:
+      PHYSICAL_INTERFACE: "bond0"
+      CPU_CORE_MASK: "0xff"
+      DPDK_UIO_DRIVER: "vfio-pci"
+      HUGE_PAGES: 32000
+      AGENT_MODE: "dpdk"
+  - hostname: "nodem33"
+    mgmt_ip: "10.204.216.177"
+    control_data_ip: "10.10.12.33"
+    vrouter:
+      PHYSICAL_INTERFACE: "bond0"
+      CPU_CORE_MASK: "0xff"
+      DPDK_UIO_DRIVER: "vfio-pci"
+      HUGE_PAGES: 32000
+      AGENT_MODE: "dpdk"
+
+# OpenStack / Keystone
+auth:
+  admin_user: "admin"
+  admin_password: "c0ntrail123"
+  admin_tenant_name: "admin"
+  keystone_auth_host: "10.204.216.150"
+  keystone_auth_url: "http://10.204.216.150:35357/v3"
+
+# Network Configuration
+network:
+  router_asn: 64512
+  enable_4byte_as: false
+  ibgp_auto_mesh: true
+  api_server_port: 8082
+  rabbitmq_port: 5673
+  vrouter_gateway: "10.10.12.101"
+  encap_priority: "VXLAN,MPLSoUDP,MPLSoGRE"
+  xmpp_ssl_enable: true
+
+# BGP router names on old cluster (as registered in config DB)
+# nodem29 is registered as wf-qgs-pxy-01.juniper.net on old cluster
+bgp_router_names:
+  nodem28: "nodem28"
+  nodem29: "wf-qgs-pxy-01.juniper.net"
+  nodem30: "wf-qgs-pxy-02.juniper.net"
+
+# Docker configuration
+docker:
+  config_api_container: "config-api-1"
+  registry: "registry.contrail.juniper.net/contrail-nightly"
+
+# Deployer (on noden30)
+deployer:
+  host: "noden30"
+  host_ip: "10.204.216.212"
+  container_name: "issu_new_1310"
+  image_tag: "master.1310"
+  instances_file_path: "/root/issu_instances_computes.yaml"
+
+# VM Creation Settings (Step 0)
+vm_creation:
+  vms_per_compute: 3
+  image_name: "cirros"
+  image_url: "http://download.cirros-cloud.net/0.5.2/cirros-0.5.2-x86_64-disk.img"
+  flavor_name: "m1.tiny"
+  flavor_ram: 512
+  flavor_vcpus: 1
+  flavor_disk: 1
+  network_name: "issu-test-vn"
+  subnet_cidr: "192.168.100.0/24"
+
+# VM Migration Settings (Step 4)
+vm_migration:
+  # Compute to consolidate VMs onto before upgrading others
+  safe_compute: "nodem31"
+  safe_compute_ip: "10.204.216.176"
+  safe_compute_fqdn: "nodem31.englab.juniper.net"
+  # Computes to upgrade (all except safe)
+  computes_to_upgrade:
+    - "nodem32"
+    - "nodem33"
+  nova_instances_path: "/var/lib/docker/volumes/nova_compute/_data/instances"
+  mariadb_password: "c0ntrail123"
+  mariadb_container: "mariadb"
+  mariadb_user: "root"
+
+# ISSU pre-sync configuration
+issu_pre_sync:
+  old_rabbit_user: "guest"
+  old_rabbit_password: "guest"
+  old_rabbit_q_name: "vnc-config.issu-queue"
+  old_rabbit_vhost: "/"
+  old_rabbit_port: 5673
+  old_rabbit_address_list: "10.204.216.2,10.204.216.4"
+  new_rabbit_user: "guest"
+  new_rabbit_password: "guest"
+  new_rabbit_q_name: "vnc-config.issu-queue"
+  new_rabbit_vhost: "/"
+  new_rabbit_port: 5673
+  new_rabbit_address_list: "10.204.216.3"
+  old_cassandra_address_list: "10.204.216.2:9041,10.204.216.4:9041"
+  old_zookeeper_address_list: "10.204.216.2:2181,10.204.216.4:2181"
+  new_cassandra_address_list: "10.204.216.3:9041"
+  new_zookeeper_address_list: "10.204.216.3:2181"
+  old_alter_table: false
+  new_alter_table: true
+  new_api_info: '{"10.204.216.3": [("root"), ("c0ntrail123")]}'
+
+# Upgrade Settings
+upgrade_settings:
+  log_directory: "/var/log/issu_upgrade"
+  log_level: "INFO"
+  timeout_seconds: 3600
+  retry_attempts: 3
+  wait_between_steps: 30
+  dry_run: false
+  continue_on_error: false
