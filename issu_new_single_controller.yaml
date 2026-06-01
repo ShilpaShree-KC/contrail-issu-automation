@@ -1,0 +1,240 @@
+deployment:
+    deployer: null
+    type:
+        kolla:
+        contrail:
+            branch: 21.4
+            registry: registry.contrail.juniper.net/contrail-nightly
+    sku: train
+    os: ubuntu
+    version: master.1310
+    orchestrator: openstack
+
+provider_config:
+  bms:
+    ssh_pwd: c0ntrail123
+    ssh_user: root
+    ntpserver: 66.129.233.81
+    domainsuffix: englab.juniper.net
+instances:
+#  nodem28-cc-vm:
+#    provider: bms
+#    ip: 10.204.216.175
+#    roles:
+#      contrail_command:
+   nodem29:
+    provider: bms
+    ip: 10.204.216.3
+    roles:
+      config_database:
+      config:
+      control:
+      analytics_database:
+      analytics:
+      webui:
+      #openstack:
+      analytics_alarm:
+      analytics_snmp:
+#  nodem31:
+#    provider: bms
+#    ip: 10.204.88.98
+#    roles:
+#      openstack_compute:
+#      vrouter:
+#        PHYSICAL_INTERFACE: ens1f1
+#        PRIORITY_ID: 0,1,2,3,4,5,6,7
+#        PRIORITY_BANDWIDTH: 0,10,0,20,0,30,0,40
+#        PRIORITY_SCHEDULING: strict,rr,strict,rr,strict,rr,strict,rr
+#        QOS_QUEUE_ID: 3,11,18,28,36,43,61,53
+#        QOS_LOGICAL_QUEUES: "[ 1, 6-10, 12-15];[40-46];[70-74, 75, 80-95];[115];[140-143, 145];[175];[245];[215]"
+#        QOS_DEF_HW_QUEUE: True
+#  nodem32:
+#    provider: bms
+#    ip: 10.204.88.99
+#    roles:
+#      openstack_compute:
+#      vrouter:
+#        PHYSICAL_INTERFACE: ens1f0
+#        PRIORITY_ID: 0,1,2,3,4,5,6,7
+#        PRIORITY_BANDWIDTH: 0,10,0,20,0,30,0,40
+#        PRIORITY_SCHEDULING: strict,rr,strict,rr,strict,rr,strict,rr
+#        QOS_QUEUE_ID: 3,11,18,28,36,43,61,53
+#        QOS_LOGICAL_QUEUES: "[ 1, 6-10, 12-15];[40-46];[70-74, 75, 80-95];[115];[140-143, 145];[175];[245];[215]"
+#        QOS_DEF_HW_QUEUE: True
+#
+#  nodem33:
+#    provider: bms
+#    ip: 10.204.88.100
+#    roles:
+#      openstack_compute:
+#      vrouter:
+#        PHYSICAL_INTERFACE: ens1f0
+#        PRIORITY_ID: 0,1,2,3,4,5,6,7
+#        PRIORITY_BANDWIDTH: 0,10,0,20,0,30,0,40
+#        PRIORITY_SCHEDULING: strict,rr,strict,rr,strict,rr,strict,rr
+#        QOS_QUEUE_ID: 3,11,18,28,36,43,61,53
+#        QOS_LOGICAL_QUEUES: "[ 1, 6-10, 12-15];[40-46];[70-74, 75, 80-95];[115];[140-143, 145];[175];[245];[215]"
+#        QOS_DEF_HW_QUEUE: True
+
+
+REGISTRY_PRIVATE_INSECURE: True
+CONTAINER_REGISTRY: registry.contrail.juniper.net/contrail-nightly
+
+global_configuration:
+  CONTAINER_REGISTRY: registry.contrail.juniper.net/contrail-nightly
+  REGISTRY_PRIVATE_INSECURE: True
+  #docker_registry: 10.84.5.85:5010
+
+contrail_configuration:
+  CONFIG_API_VIP: 10.204.216.2
+  AAA_MODE: rbac
+  XMPP_SSL_ENABLE: True
+  CLOUD_ORCHESTRATOR: openstack
+  OPENSTACK_NODES: 10.204.216.2
+  CONTROLLER_NODES: 10.204.216.3
+  CONTROL_NODES: 10.10.12.29
+  CONTAINER_REGISTRY: registry.contrail.juniper.net/contrail-nightly
+  REGISTRY_PRIVATE_INSECURE: True
+  CONTRAIL_VERSION: master.1310
+  RABBITMQ_NODE_PORT: 5673
+  KEYSTONE_AUTH_HOST: 10.204.216.150
+  #IPFABRIC_SERVICE_HOST: 10.204.216.150
+  KEYSTONE_AUTH_ADMIN_PASSWORD: c0ntrail123
+  KEYSTONE_AUTH_URL_VERSION: /v3
+  #VROUTER_GATEWAY: 10.10.12.101
+  ENCAP_PRIORITY: "VXLAN,MPLSoUDP,MPLSoGRE"
+  CONFIG_NODEMGR__DEFAULTS__minimum_diskGB: "2"
+  CONFIG_DATABASE_NODEMGR__DEFAULTS__minimum_diskGB: "2"
+  DATABASE_NODEMGR__DEFAULTS__minimum_diskGB: "2"
+  API__DEFAULTS__max_request_size: 11124000
+  VROUTER_AGENT__DEFAULT__uve_remote_prefix_allow: false
+
+orchestrator_configuration:
+  keystone:
+    version: v3
+    password: c0ntrail123
+  vrrp_id: 228
+  internal_vip: 10.204.216.150
+  external_vip: 10.204.216.150
+  contrail_api_interface_address: 10.204.216.3
+  enable_haproxy: "yes"
+  enable_ironic: "no"
+  enable_swift: "no"
+
+kolla_config:
+  kolla_globals:
+    kolla_internal_vip_address: 10.204.216.150
+    kolla_external_vip_address: 10.204.216.150
+    contrail_api_interface_address: 10.204.216.3
+    keepalived_virtual_router_id: 228
+    enable_haproxy: "yes"
+    enable_ironic: "no"
+    enable_swift: "no"
+    force_checkout: "no"
+    #contrail_docker_registry: registry.contrail.juniper.net/contrail-nightly
+    #openstack_release: "train"
+    #keystone_admin_password: c0ntrail123
+    docker_namespace: openstack.kolla
+    docker_registry: registry.contrail.juniper.net/quay.io
+  kolla_passwords:
+    keystone_admin_password: c0ntrail123
+    metadata_secret: c0ntrail123
+
+
+test_configuration:
+    cfgm0_host_string: root@10.204.216.3
+    cfgm0_host_pwd: c0ntrail123
+    cluster_id: m28m33_cluster
+    image_web_server: 10.87.92.97
+    use_project_scoped_token: True
+    public_host: 10.84.5.120
+    public_rt: 19028
+    public_virtual_network: 10.204.219.24/29
+    public_subnet: 10.204.219.24/29
+    use_devicemanager_for_md5 : True
+    ext_routers:
+        ishant: 10.10.12.101
+    fabric_gw:
+        sw166: 10.204.217.254
+    device_manager:
+        umesh:
+            vendor: juniper
+            model : mx
+            asn   : 64512
+            name  : umesh
+            control_ip : 10.10.12.100
+            ssh_username : root
+            ssh_password : c0ntrail123
+            mgmt_ip  : 10.204.217.191
+    physical_routers:
+        ishant:
+            vendor: juniper
+            model : mx
+            asn   : 64512
+            name  : ishant
+            control_ip : 10.10.12.101
+            tunnel_ip : 10.10.12.101
+            ports : 
+            ssh_username : root
+            ssh_password : c0ntrail123
+            bgp_protocol_group: testbed_regression_m28_srinivas
+            mgmt_ip  : 10.204.216.247
+            type  : router
+    web_server:
+        server: 10.204.216.208
+        username: stack
+        password: stack@123
+        report_path: /home/stack/mounts2/bhushana/Documents/technical/sanity/fb-sanity/FB-R5.0-centos7-ha-ansible-sanity
+        log_path: /home/stack/mounts2/bhushana/Documents/technical/logs
+        web_root: Docs/logs
+    mail_server:
+        #server: 10.204.216.49
+        server: 10.47.226.20
+        port: 25
+        to: contrail-test-team@juniper.net, sshreekc@juniper.net
+        sender: contrailbuild@juniper.net
+
+    server_manager:
+        ip: 10.204.217.158
+        username: root
+        password: c0ntrail123
+        image: centos-7.6
+        client: /cs-shared/server-manager/client/server-manager
+
+control_data:
+#    nodem28:
+#        ip: 10.204.216.2
+#        ctrldata_ip: 10.10.12.28
+#        prefix: 24
+#        gw: 10.10.12.101
+#        device: eno2
+    nodem29:
+        ip: 10.204.216.3
+        ctrldata_ip: 10.10.12.29
+        prefix: 24
+        gw: 10.10.12.101
+        device: eno2
+#    nodem30:
+#        ip: 10.204.216.4
+#        ctrldata_ip: 10.10.12.30
+#        prefix: 24
+#        gw: 10.10.12.101
+#        device: eno2
+#    nodem31:
+#        ip: 10.204.88.98
+#        ctrldata_ip: 10.10.12.31
+#        prefix: 24
+#        gw: 10.10.12.101
+#        device: ens1f1
+#    nodem32:
+#        ip: 10.204.88.99
+#        ctrldata_ip: 10.10.12.32
+#        prefix: 24
+#        gw: 10.10.12.101
+#        device: ens1f0
+#    nodem33:
+#        ip: 10.204.88.100
+#        ctrldata_ip: 10.10.12.33
+#        prefix: 24
+#        gw: 10.10.12.101
+#        device: ens1f0
